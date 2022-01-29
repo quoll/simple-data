@@ -35,10 +35,13 @@
   [orderings]
   {:pre [(zero? (mod (count orderings) 2))]}
   (if-not (seq orderings)
-    compare
+    ;; no orderings provided, maps cannot be sorted, so sort by their string representations
+    (fn [a b] (compare (str a) (str b)))
     (let [ords (partition 2 orderings)]
       (fn [a b]
+        (log/tracef "Comparing %s / %s" (pr-str a) (pr-str b))
         (loop [[[field dir :as o] & remaining] ords]
+          (log/tracef "Comparing by %s (%s)" (str field) (name dir))
           (if-not o
             (compare (str a) (str b))  ;; no more fields to sort by. Return string compare for stable sorting
             (let [fa (get a field)

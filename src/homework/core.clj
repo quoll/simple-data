@@ -20,11 +20,11 @@
   returns: nil"
   [storage]
   (println "\nOutput 1: by favorite color/last-name")
-  (doseq [record (storage/retrieve storage)]
-    (println (etl/output-str record :color :asc :last-name :asc)))
+  (doseq [record (storage/retrieve storage :favorite-color :asc :last-name :asc)]
+    (println (etl/output-str record)))
   (println "\nOutput 2: by birth date")
-  (doseq [record (storage/retrieve storage)]
-    (println (etl/output-str record :dob :asc)))
+  (doseq [record (storage/retrieve storage :dob :asc)]
+    (println (etl/output-str record)))
   (println "\nOutput 3: by last-name (descending)")
   (doseq [record (storage/retrieve storage :last-name :desc)]
     (println (etl/output-str record)))
@@ -38,7 +38,6 @@
     (log/infof "Loading data from: %s" file)
     (etl/load-records-into file storage)
     (log/info "Reading back data")
-    (doseq [record (storage/retrieve storage)]
-      (println (etl/output-str record)))
+    (user-output storage)
     ;; (log/info "Starting service...")
     (log/info "Exiting")))
