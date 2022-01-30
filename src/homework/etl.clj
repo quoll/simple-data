@@ -15,30 +15,31 @@
 (def ^:private date-format (DateTimeFormatter/ofPattern "M/d/yyyy"))
 (def ^{:private true
        :doc "a sequence of offset/function pairs for updating lexed field data into an appropriate type"}
-  types [[4 #(LocalDate/from (.parse date-parser %))]])
+  record-types [[4 #(LocalDate/from (.parse date-parser %))]])
 
 (defn output-str
   "Converts a record into a string.
   record: a map containing the record to convert.
   return: a string representation of the record."
-  [{:keys [last-name first-name email favorite-color dob] :as record}]
-  (format "%s, %s, %s, %s, %s" last-name first-name email favorite-color (.format date-format dob)))
+  [{:keys [last-name first-name email favorite-color dob] :as record
+    :or {last-name "" first-name "" email "" favorite-color ""}}]
+  (format "%s, %s, %s, %s, %s" last-name first-name email favorite-color (if dob (.format date-format dob) "")))
 
 (defn update-types
   "Updates data in records to have appropriate types
   field-data: a vector of string fields to be converted into a record.
   returns: a vector of fields with some values parsed into require types."
-  [field-data]
+  [types field-data]
   (log/tracef "Processing lexed line: %s" (pr-str field-data))
-  ;; for each type offset/fn pair, update the value at n with the function
   (try
+    ;; for each type-offset/fn pair, update the value at n with the function
     (reduce (fn [data [n converter]]
               (log/tracef "Updating type of column %d: %s" n (nth data n))
               (update data n converter))
             field-data types)
     (catch Exception e
-      (log/errorf "Error parsing data on line: %s" (pr-str field-data))
-      (throw (ex-info (format "Parse error in %s: %s" (pr-str field-data) (ex-message e))
+      (log/debug "Throwing exception when parsing")
+      (throw (ex-info (format "Parse error in \"%s\": %s" (pr-str field-data) (ex-message e))
                       {:cause e})))))
 
 (defn select-reader
@@ -54,12 +55,12 @@
             (log/tracef "Found a matching separator: " (str %))
             ;; capture the matching separator in a function that builds the record 
             (fn [s]
-              (->> (str/split s %)    ;; close over the separator and split by it
-                   update-types       ;; update any fields that need specific types
-                   (zipmap fields)))) ;; create a map, labeling all of the fields
+              (->> (str/split s %)             ;; close over the separator and split by it
+                   (update-types record-types) ;; update any fields that need specific types
+                   (zipmap fields))))          ;; create a map, labeling all of the fields
          separators)
    (do
-     (log/errorf "Unable to find a parser for: %s" line)
+     (log/debugf "Throwing exception while looking for parser for \"%s\"" line)
      (throw (ex-info "No matching parser found" {:text line})))))
 
 (defn find-location
@@ -88,7 +89,7 @@
             record-tx (select-reader f)]
         (transform-to (map record-tx lines))))
     (do
-      (log/errorf "Unable to locate file at: %s" location)
+      (log/debugf "Throwing exception looking for: %s" location)
       (throw (ex-info "File not found" {:location location})))))
 
 (defn load-records-into
