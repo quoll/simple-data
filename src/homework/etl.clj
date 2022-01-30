@@ -8,14 +8,14 @@
   (:import [java.time LocalDate]
            [java.time.format DateTimeFormatter]))
 
-(def ^:private separators [#" " #"," #"\|"])
+;; spaces come last to preference other separators in case spaces are also possible
+(def ^:private separators [#"," #"\|" #" "])
 (def ^:private fields [:last-name :first-name :email :favorite-color :dob])
 (def ^:private record-length (count fields))
-(def ^:private date-parser (DateTimeFormatter/ofPattern "MM/dd/yyyy"))
 (def ^:private date-format (DateTimeFormatter/ofPattern "M/d/yyyy"))
 (def ^{:private true
        :doc "a sequence of offset/function pairs for updating lexed field data into an appropriate type"}
-  record-types [[4 #(LocalDate/from (.parse date-parser %))]])
+  record-types [[4 #(LocalDate/from (.parse date-format (str/trim %)))]])
 
 (defn output-str
   "Converts a record into a string.

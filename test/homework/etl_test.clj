@@ -44,3 +44,65 @@
   (testing "Checking for parse errors"
     (is (thrown-with-msg? ExceptionInfo #"^Parse error in .* For input string: \"one\""
                           (update-types [[1 parse-long*]] ["0" "one" "2"])))))
+
+(deftest select-reader-test
+  (let [expected {:last-name "Darcy"
+                  :first-name "Fitzwilliam"
+                  :email "bill@pemberly.com"
+                  :favorite-color "red"
+                  :dob (LocalDate/of 1806 1 28)}]
+    (let [rdrc (select-reader "Bennet,Elizabeth,liz@longbourn.com,blue,1/28/1813")
+          rdrc2 (select-reader "Bennet, Elizabeth, liz@longbourn.com, blue, 1/28/1813")]
+      (testing "Comma separated strings are parsed by the selected reader, even when it is possible to space-separate."
+        (is (= expected (rdrc "Darcy,Fitzwilliam,bill@pemberly.com,red,1/28/1806")))
+        (is (= expected (rdrc2 "Darcy,Fitzwilliam,bill@pemberly.com,red,1/28/1806"))))
+      (testing "Selected parser accepts 0-padded dates."
+        (is (= expected (rdrc "Darcy,Fitzwilliam,bill@pemberly.com,red,01/28/1806")))
+        (is (= expected (rdrc2 "Darcy,Fitzwilliam,bill@pemberly.com,red,01/28/1806")))))
+      
+    (let [rdrc (select-reader "Bennet|Elizabeth|liz@longbourn.com|blue|1/28/1813")
+          rdrc2 (select-reader "Bennet | Elizabeth | liz@longbourn.com | blue | 1/28/1813")]
+      (testing "Pipe separated strings are parsed by the selected reader, even when it is possible to space-separate."
+        (is (= expected (rdrc "Darcy|Fitzwilliam|bill@pemberly.com|red|1/28/1806")))
+        (is (= expected (rdrc2 "Darcy|Fitzwilliam|bill@pemberly.com|red|1/28/1806"))))
+      (testing "Selected parser accepts 0-padded dates."
+        (is (= expected (rdrc "Darcy|Fitzwilliam|bill@pemberly.com|red|01/28/1806")))
+        (is (= expected (rdrc2 "Darcy|Fitzwilliam|bill@pemberly.com|red|01/28/1806"))))
+      (testing "Selected reader keeps extra spaces for padding, but ignores when parsing dates."
+        (let [expected {:last-name "Darcy "
+                        :first-name " Fitzwilliam "
+                        :email " bill@pemberly.com "
+                        :favorite-color " red "
+                        :dob (LocalDate/of 1806 1 28)}]
+          (is (= expected (rdrc "Darcy | Fitzwilliam | bill@pemberly.com | red | 01/28/1806"))))))
+
+    (let [rdrc (select-reader "Bennet Elizabeth liz@longbourn.com blue 1/28/1813")]
+      (testing "Comma separated strings are parsed by the selected reader."
+        (is (= expected (rdrc "Darcy Fitzwilliam bill@pemberly.com red 1/28/1806"))))))
+
+  (testing "Fail to select a reader when insufficient fields are found"
+    (is (thrown-with-msg? ExceptionInfo #"No matching parser found"
+                          (select-reader "")))
+    (is (thrown-with-msg? ExceptionInfo #"No matching parser found"
+                          (select-reader "Bennet,Elizabeth,liz@longbourn.com,1/28/1813"))))
+  (testing "Fail to select a reader when mixing separator types"
+    (is (thrown-with-msg? ExceptionInfo #"No matching parser found"
+                          (select-reader "Bennet,Elizabeth,liz@longbourn.com|email|1/28/1813")))))
+
+(deftest find-location-test
+  (testing "Find a file in the resources"
+    (let [url (find-location "data.csv")]
+      (is (some? url))
+      (is (= "file" (.getProtocol url)))))
+  (testing "Find a file on disk"
+    (let [f (find-location "data.ssv")]
+      (is (.exists f)))))
+
+(deftest load-data-test
+  )
+
+(deftest load-records-into-test
+  )
+
+(deftest load-records-test
+  )
