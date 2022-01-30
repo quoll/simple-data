@@ -14,7 +14,7 @@
    ["-f" "--file FILE" "path or URL of file"
     :default default-file]])
 
-(defn user-output
+(defn cli-output
   "Prints the stored data to standard out, using 3 different types of sorting.
   storage: The handle to storage.
   returns: nil"
@@ -38,6 +38,6 @@
     (log/infof "Loading data from: %s" file)
     (etl/load-records-into file storage)
     (log/info "Reading back data")
-    (user-output storage)
+    (cli-output storage)
     ;; (log/info "Starting service...")
     (log/info "Exiting")))
