@@ -93,6 +93,10 @@
 
 (defn load-records-into
   "Loads records from a location into a storage handle.
+  This approach uses streaming, so that a large file need not be loaded
+  entirely into memory, and can be passed to the database as a lazy
+  sequence. It presumes that the data storage API is able to load
+  data from a stream.
   Throws an exception if a file cannot be found at the location.
   location: the location of a records file. May be a path or a URL.
   storage: A handle to storage to insert the data into.
@@ -105,7 +109,10 @@
     (load-data location transform)))
 
 (defn load-records
-  "Eagerly loads records from a location.
+  "This is a convenience function to eagerly load records from a location.
+  The current implementation would be better to use this, but it is only
+  used for test and debugging purposes.
+
   Throws an exception if a file cannot be found at the location.
   location: the location of a records file. May be a path or a URL.
   return: a sequence of records"
