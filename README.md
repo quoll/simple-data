@@ -4,7 +4,23 @@ Homework assignment for Guaranteed Rate.
 
 ## Usage
 
-    $ java -jar homework-0.1.0-standalone.jar [-s storage-label -f data-file]
+To run tests:
+
+```
+lein test
+```
+
+To run the basic program that loads and prints:
+```
+lein run [--store STORE_NAME] [--file DATA_FILE]
+```
+
+To run the service:
+```
+lein with-profile service run [--port PORT] [--store STORE_NAME]
+```
+
+The store name is used in principle, but is just a label for internal data and may be ignored.
 
 ## License
 
