@@ -1,9 +1,15 @@
 (ns homework.etl-test
   (:require [clojure.test :refer :all]
-            [homework.etl :refer [output-str update-types select-reader find-location
+            [homework.etl :refer [date-str output-str update-types select-reader find-location
                                   load-data load-records-into load-records]])
   (:import [java.time LocalDate]
            [clojure.lang ExceptionInfo]))
+
+(deftest date-str-test
+  (testing "Converting date to a string"
+    (is (= "1/30/2022" (date-str (LocalDate/of 2022 1 30)))))
+  (testing "Converting nil date to string"
+    (is (= "" (date-str nil)))))
 
 (deftest output-str-test
   (testing "Testing record conversion to string."
@@ -96,13 +102,51 @@
       (is (= "file" (.getProtocol url)))))
   (testing "Find a file on disk"
     (let [f (find-location "data.ssv")]
-      (is (.exists f)))))
+      (is (.exists f))))
+  (testing "Look for something that doesn't exist"
+    (is (not (find-location "non-existent.txt")))))
 
 (deftest load-data-test
-  )
+  (testing "Loaded data is presented to the callback."
+    (let [record-keys (set @#'homework.etl/fields)
+          handle (load-data "data.csv"
+                            (fn [records]
+                              (testing "Lazy sequence."
+                                (is (not (counted? records))))
+                              (let [record-count (volatile! 0)]
+                                (doseq [record records]
+                                  (vswap! record-count inc)
+                                  (is (= record-keys (set (keys record)))))
+                                (is (= @record-count 6)))
+                              :handle))]
+      (testing "Is returned value to the same data as stored."
+        (is (= :handle handle)))))
+  (testing "Missing file throws exception"
+    (is (thrown-with-msg? ExceptionInfo #"File not found" (load-data "missing.csv" identity)))))
 
 (deftest load-records-into-test
-  )
+  (let [store {:label "test" :data (atom [])}]
+    (testing "Storage is filled, then returned."
+      (let [{:keys [label data]} (load-records-into "data.csv" store)]
+        (is (= label "test"))
+        (is (= 6 (count @(:data store))))
+        (testing "Loading the same data again continues to fill the store.")
+        (load-records-into "data.ssv" store)
+        (is (= 12 (count @(:data store))))
+        (let [first6 (take 6 @(:data store))
+              second6 (drop 6 @(:data store))]
+          (doseq [[a b] (map vector first6 second6)] (is (= a b))))))
+    (testing "Missing file throws exception"
+      (is (thrown-with-msg? ExceptionInfo #"File not found"
+                            (load-records-into "missing.csv" store))))))
 
 (deftest load-records-test
-  )
+  (testing "Storage is filled from different locations, then returned."
+    (let [data (load-records "data.csv")
+          data2 (load-records "data.ssv")]
+      (is (= 6 (count data)))
+      (is (= 6 (count data2)))
+      (is (= data data2))))
+  (testing "Missing file throws exception"
+    (is (thrown-with-msg? ExceptionInfo #"File not found"
+                          (load-records "missing.csv")))))

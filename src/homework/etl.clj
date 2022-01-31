@@ -17,13 +17,20 @@
        :doc "a sequence of offset/function pairs for updating lexed field data into an appropriate type"}
   record-types [[4 #(LocalDate/from (.parse date-format (str/trim %)))]])
 
+(defn date-str
+  "Converts a date object as a string.
+  d: a LocalDate object
+  return: a formatted string representing the data, or an empty string if the object is nil."
+  [d]
+  (if d (.format date-format d) ""))
+
 (defn output-str
   "Converts a record into a string.
   record: a map containing the record to convert.
   return: a string representation of the record."
   [{:keys [last-name first-name email favorite-color dob] :as record
     :or {last-name "" first-name "" email "" favorite-color ""}}]
-  (format "%s, %s, %s, %s, %s" last-name first-name email favorite-color (if dob (.format date-format dob) "")))
+  (format "%s, %s, %s, %s, %s" last-name first-name email favorite-color (date-str dob)))
 
 (defn update-types
   "Updates data in records to have appropriate types
@@ -66,7 +73,7 @@
 (defn find-location
   "Converts a location into a loadable file.
   location: a string that may be a resource path or a file path.
-  return: a url, file, or nil if the location cannot be resolved"
+  return: a url, file, or falsey if the location cannot be resolved"
   [location]
   ;; look on the classpath for the file
   (or (io/resource location)
