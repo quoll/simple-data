@@ -1,6 +1,6 @@
 # homework
 
-Homework assignment for Guaranteed Rate.
+Homework assignment.
 
 ## Usage
 
@@ -21,6 +21,13 @@ lein with-profile service run [--port PORT] [--store STORE_NAME]
 ```
 
 The store name is used in principle, but is just a label for internal data and may be ignored.
+
+## Shell test
+
+A simple integration test is also available:
+```
+./test.sh
+```
 
 ## License
 
