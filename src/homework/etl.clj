@@ -15,7 +15,7 @@
 (def ^:private date-format (DateTimeFormatter/ofPattern "M/d/yyyy"))
 (def ^{:private true
        :doc "a sequence of offset/function pairs for updating lexed field data into an appropriate type"}
-  record-types [[4 #(LocalDate/from (.parse date-format (str/trim %)))]])
+  record-types [[4 #(LocalDate/from (.parse date-format %))]])
 
 (defn date-str
   "Converts a date object as a string.
@@ -63,6 +63,7 @@
             ;; capture the matching separator in a function that builds the record 
             (fn [s]
               (->> (str/split s %)             ;; close over the separator and split by it
+                   (mapv str/trim)             ;; trim any leading or trailing spaces
                    (update-types record-types) ;; update any fields that need specific types
                    (zipmap fields))))          ;; create a map, labeling all of the fields
          separators)

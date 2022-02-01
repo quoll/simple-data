@@ -74,13 +74,8 @@
       (testing "Selected parser accepts 0-padded dates."
         (is (= expected (rdrc "Darcy|Fitzwilliam|bill@pemberly.com|red|01/28/1806")))
         (is (= expected (rdrc2 "Darcy|Fitzwilliam|bill@pemberly.com|red|01/28/1806"))))
-      (testing "Selected reader keeps extra spaces for padding, but ignores when parsing dates."
-        (let [expected {:last-name "Darcy "
-                        :first-name " Fitzwilliam "
-                        :email " bill@pemberly.com "
-                        :favorite-color " red "
-                        :dob (LocalDate/of 1806 1 28)}]
-          (is (= expected (rdrc "Darcy | Fitzwilliam | bill@pemberly.com | red | 01/28/1806"))))))
+      (testing "Selected reader removes leading and trailing spaces for padding."
+        (is (= expected (rdrc "Darcy | Fitzwilliam | bill@pemberly.com | red | 01/28/1806")))))
 
     (let [rdrc (select-reader "Bennet Elizabeth liz@longbourn.com blue 1/28/1813")]
       (testing "Comma separated strings are parsed by the selected reader."
