@@ -29,8 +29,8 @@
         (catch Exception e
           (log/error (ex-message e))
           (error e)))
-      (error (ex-info (str "Bad request data type: " (ring-util/content-type request)) nil)
-             (ring-util/body-string request)))))
+      (let [message (str "Bad request data type: " (ring-util/content-type request))]
+        (error (ex-info message {}) (str message "\ndata: " body))))))
 
 (defn get-records
   "Retrieve records from storage, and return as a JSON response.

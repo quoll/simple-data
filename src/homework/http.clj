@@ -29,9 +29,10 @@
 (defn json
   "Returns a JSON response.
   body: data to return"
-  ([body] {:headers json-headers
-           :status 200
-           :body (json/write-str body :value-fn date-writer)}))
+  [body]
+  {:headers json-headers
+   :status 200
+   :body (json/write-str body :value-fn date-writer)})
 
 (defn error
   "Returns an error response.
@@ -55,12 +56,13 @@
   request: the request to check.
   return: true if the Accept header requests JSON."
   [request]
-  (str/starts-with? (accept-type request) "application/json"))
+  (some-> (accept-type request)
+          (str/starts-with? "application/json")))
 
 (defn text-post?
   "Determines if a request was made by posting text.
   request: the request to check.
   return: true if the Content-Type header is for text."
   [request]
-  (str/starts-with? (ring-util/content-type request) "text/plain"))
-
+  (some-> (ring-util/content-type request)
+          (str/starts-with? "text/plain")))

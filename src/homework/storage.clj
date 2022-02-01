@@ -24,7 +24,7 @@
       (swap! data into records)
       store)
     (do
-      (log/errorf "Unexpected data type added to storage %s" (str (type records)))
+      (log/debugf "Unexpected data type added to storage %s" (str (type records)))
       (throw (ex-info "Bad data appended to storage" {:data-type (type records)})))))
 
 (defn compare-for

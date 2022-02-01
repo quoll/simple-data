@@ -18,4 +18,5 @@
   :target-path "target/%s"
   :profiles {:service {:main ^:skip-aot homework.service}
              :uberjar {:aot :all
-                       :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}})
+                       :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}
+             :test {:dependencies [[peridot "0.5.4"]]}})
