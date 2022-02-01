@@ -1,6 +1,6 @@
 # homework
 
-Homework assignment for Guaranteed Rate.
+Homework assignment.
 
 ## Usage
 
